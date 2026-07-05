@@ -6,11 +6,21 @@ import OpenAI from "openai";
 const cohere = new CohereClientV2({ token: process.env.COHERE_API_KEY });
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "https://hiteshai-mocha.vercel.app",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { status: 200, headers: corsHeaders });
+}
+
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json({ error: "Invalid messages array" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid messages array" }, { status: 400, headers: corsHeaders });
     }
 
     const lastMessage = messages[messages.length - 1].content;
@@ -105,12 +115,13 @@ INSTRUCTIONS FOR ANSWERING:
 
     return new Response(customStream, {
       headers: {
+        ...corsHeaders,
         "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-cache",
       },
     });
   } catch (error: any) {
     console.error("❌ [Chat API] Error:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500, headers: corsHeaders });
   }
 }
