@@ -1,0 +1,51 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [vector]
+}
+
+model Video {
+  id            String   @id @default(cuid())
+  youtubeId     String   @unique
+  title         String
+  url           String
+  publishedAt   DateTime
+  playlistName  String?
+  topicTags     String[] // ["react", "dsa", "docker", ...]
+  courseLink    String?  // udemy link agar hai
+  chunks        TranscriptChunk[]
+}
+
+model TranscriptChunk {
+  id            String   @id @default(cuid())
+  videoId       String
+  video         Video    @relation(fields: [videoId], references: [id])
+  startSec      Int
+  endSec        Int
+  textHindi     String   // original devanagari/mixed transcript text
+  textHinglish  String?  // only populated for the "tone corpus" subset
+  embedding     Unsupported("vector(1024)")? // pgvector column
+}
+
+model Comment {
+  id            String   @id @default(cuid())
+  videoId       String
+  authorName    String
+  text          String
+  likeCount     Int
+  isHiteshReply Boolean  @default(false) // gold data: question + his actual reply
+  parentId      String?
+}
+
+model Tweet {
+  id            String   @id @default(cuid())
+  tweetId       String   @unique
+  text          String
+  createdAt     DateTime
+  isReply       Boolean
+  embedding     Unsupported("vector(1024)")?
+}
